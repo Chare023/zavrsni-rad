@@ -1,60 +1,68 @@
 <?php
 include('db.php');
 include('header.php');
-?>
 
-<?php
-
-    if (isset($_GET['post_id'])) {
-        $sql = "SELECT id, title, body, author, created_at 
-        FROM posts WHERE id = {$_GET['post_id']}";
-        $singlePost = getSingle($connection, $sql);
-    //  var_dump($singlePost);
-        $sqlComments = "SELECT * FROM comments WHERE post_id = {$_GET['post_id']}";
-        $comments = getAll($connection, $sqlComments);
-        // var_dump($comments);
     
 ?>
+<?php
+    if (isset($_GET['post_id'])) {
+        $sql = "SELECT id, title, body, author, created_at 
+        FROM posts ORDER BY created_at DESC";
+        $posts = getall($connection, $sql);
+        $sqlSinglePost = "SELECT id, title, body, author, created_at 
+        FROM posts WHERE id = {$_GET['post_id']}";
+        $singlePost = getSingle($connection, $sqlSinglePost);
+        $sqlComments = "SELECT * FROM comments WHERE post_id = {$_GET['post_id']}";
+        $comments = getAll($connection, $sqlComments);  
+?>
 
+<!-- single post -->
 <div class="col-sm-8 blog-main">
     <div class="blog-post">
         <h2 class="blog-post-title"><?php echo($singlePost['title'])?></a></h2>
+        <!-- <input type="submit" value="Delete" class="btn btn-primary" onclick="return confirm('Are you sure you want to delete this post?')"> -->
+        <a onclick="return confirm('Are you sure you want to delete this post?')" if(confirm){
+            href="delete-post.php?post_id=<?php echo($singlePost['id'])?>"
+        } class="btn btn-primary float-right">Delete this post</a>
         <p class="blog-post-meta"><?php echo($singlePost['created_at']) ?><a href="#"><?php echo(" ". $singlePost['author']) ?></a></p>
-
         <p><?php echo($singlePost['body']) ?></p>
-        <hr>
-        <p>Cum sociis natoque penatibus et magnis <a href="#">dis parturient montes</a>, nascetur ridiculus mus. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis. Cras mattis consectetur purus sit amet fermentum.</p>
-        <blockquote>
-            <p>Curabitur blandit tempus porttitor. <strong>Nullam quis risus eget urna mollis</strong> ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
-        </blockquote>
-        <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
-        <h2>Heading</h2>
-        <p>Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
-        <h3>Sub-heading</h3>
-        <p>Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</p>
-        <pre><code>Example code block</code></pre>
-        <p>Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna mollis euismod. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa.</p>
-        <h3>Komentari</h3>
-        <p>Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna mollis euismod. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-        <ul>
+        <!-- kraj posta -->
+
+        <!-- forma za upis komentara -->
+        <div class="form-group">
+            
+            <form action="create-comment.php" method="post" id="comment-form">
+                <h4>Post a comment:</h4><br>
+                <?php 
+                if (isset($_GET['error'])) {
+                    echo '
+                    <div class="alert alert-danger form-control">
+                        <h6>All fields required</h6>
+                    </div>';
+                }
+                ?>
+                <input class="form-control" name="author" type="text" placeholder="Name"><br>
+                <textarea class="form-control" name="text" id="comment-text" rows="4" maxlength="255" placeholder="Comment"></textarea><br>
+                <button class="btn btn-outline-primary" name='submit' value="<?php echo($singlePost['id']) ?>">Submit</button>
+            </form>
+        </div> <!-- kraj forme -->
+
+        <!-- komentari -->
+        <button id="btn-comment-show" class="btn btn-default">Hide comments</button>
+        <br><br>
+        <ul id="comments">
             <?php foreach ($comments as $comment) { ?>
                 <li><?php echo($comment['author'].": ");
-                echo($comment['text']); ?>
+                    echo($comment['text']); ?>
                 </li>
+                <a href="delete-comment.php?post_id=<?php echo($singlePost['id'])?>&comment_id=<?php echo($comment['id'])?>" class="btn btn-default float-right">Delete</a>
+                
+                <br>
                 <hr>
             <?php } ?>
-            <li>Praesent commodo cursus magna, vel scelerisque nisl consectetur et.</li>
-            <li>Donec id elit non mi porta gravida at eget metus.</li>
-            <li>Nulla vitae elit libero, a pharetra augue.</li>
         </ul>
-        <p>Donec ullamcorper nulla non metus auctor fringilla. Nulla vitae elit libero, a pharetra augue.</p>
-        <ol>
-            <li>Vestibulum id ligula porta felis euismod semper.</li>
-            <li>Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</li>
-            <li>Maecenas sed diam eget risus varius blandit sit amet non magna.</li>
-        </ol>
-        <p>Cras mattis consectetur purus sit amet fermentum. Sed posuere consectetur est at lobortis.</p>
-    </div><!-- /.blog-post -->
+    </div>
+    <script src="main.js"></script>
 <?php } ?>
     
     <nav class="blog-pagination">
@@ -64,7 +72,8 @@ include('header.php');
 
 </div><!-- /.blog-main -->
 
+
 <?php 
-include('sidebar.php'); 
+include('sidebar.php');
 include('footer.php');
 ?>
